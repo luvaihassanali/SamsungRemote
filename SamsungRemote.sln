@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33530.505
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SamsungRemote", "SamsungRemote\SamsungRemote.csproj", "{57155D51-6511-4951-9C9F-91C7B25CE15D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{57155D51-6511-4951-9C9F-91C7B25CE15D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{57155D51-6511-4951-9C9F-91C7B25CE15D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{57155D51-6511-4951-9C9F-91C7B25CE15D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{57155D51-6511-4951-9C9F-91C7B25CE15D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {6584BDC3-CC61-4EF4-80EF-F6B46EF0B9E4}
+	EndGlobalSection
+EndGlobal
