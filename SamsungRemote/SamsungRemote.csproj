@@ -4,10 +4,28 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>SamsungRemote.snk</AssemblyOriginatorKeyFile>
     <RootNamespace>$(MSBuildProjectName.Replace(" ", "_"))Lib</RootNamespace>
+    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+    <Title>$(AssemblyName)</Title>
+    <Authors>Luvai Hassanali</Authors>
+    <Company>Luvai Hassanali</Company>
+    <Description>.NET 6.0 library used to communicate with Samsung TV over Wi-Fi</Description>
+    <RepositoryUrl>https://github.com/luvaihassanali/SamsungRemote</RepositoryUrl>
+    <PackageTags>c-sharp;http;control;remote-control;csharp;tcp;https;websocket;websockets;remote;wifi;netcore;ip;samsung;samsung-tv;wi-fi;tcp-ip;net-core;samsung-remote</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\LICENSE.txt">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />

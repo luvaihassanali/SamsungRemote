@@ -7,10 +7,6 @@ using WebSocketSharp;
 
 namespace SamsungRemoteLib
 {
-    // WebSocketSharp async methods use BeginInvoke which is not supported for .NET Core
-    // https://github.com/sta/websocket-sharp/pull/712
-    // To use asynchronously execute *methodName*Async() which is simply synchronous method wrapped in await Task.Run
-
     public class SamsungRemote : IDisposable
     {
         private string websocketUrl;
@@ -26,11 +22,6 @@ namespace SamsungRemoteLib
             macAddrBytes = new byte[6];
             string urlPrefix = settings.Port == 8001 ? "ws" : "wss";
             websocketUrl = $"{urlPrefix}://{settings.IpAddr}:{settings.Port}/api/v2/channels/samsung.remote.control?name={settings.AppName}";
-
-            //websocket.OnOpen
-            //websocket.OnClose
-            //websocket.OnMessage
-            //websocket.OnError += Websocket_OnError;
         }
 
         public void Connect()
@@ -45,51 +36,49 @@ namespace SamsungRemoteLib
             }
 
             websocket = new WebSocket(websocketUrl);
+            websocket.OnError += Websocket_OnError;
             websocket.Connect();
         }
 
         public void Press(string key)
         {
-            if (websocket == null || !websocket.IsAlive) throw new ArgumentNullException("WebSocket is ***null*** call Connect() or ConnectAsync() before key press");
-            if (settings.Token == null) throw new ArgumentNullException("Token is ***null*** call GenerateNewToken() or GenerateNewTokenAsync() before key press");
-
+            if (settings.Token == null) throw new ArgumentNullException("Token is ***null*** execute Connect() before pressing keys");
             Parameters parameters = new Parameters(key);
             Command cmd = new Command(parameters);
             string data = JsonConvert.SerializeObject(cmd).Replace("parameters", "params");
-            Log("Sending key data: " + data);
+            Log("Sending key: " + key);
             websocket?.Send(data);
         }
 
-        public void GenerateNewToken(bool timeoutException = true)
+        public void GenerateNewToken()
         {
-            Task task = Task.Run(() => GenerateNewTokenAsync(timeoutException));
+            Task task = Task.Run(() => GenerateNewTokenAsync());
             task.Wait();
         }
 
-        public async Task GenerateNewTokenAsync(bool timeoutException = true)
+        public async Task GenerateNewTokenAsync()
         {
             CancellationTokenSource tokenSource = new CancellationTokenSource();
             using (websocket = new WebSocket(websocketUrl))
             {
                 websocket.OnOpen += (sender, e) =>
                 {
-                    Parameters parameters = new Parameters(Keys.KEY_HOME); // token only received with home
-                    Command cmd = new Command(parameters);
-                    string data = JsonConvert.SerializeObject(cmd).Replace("parameters", "params");
-                    Log("Generate new token request: " + data);
-                    Press(data);
+                    Log("Connection established");
                 };
 
                 websocket.OnMessage += (sender, e) =>
                 {
-                    Log("Generate new token data: " + e.Data);
                     JObject response = JObject.Parse(e.Data);
-                    string newToken = response?["data"]?["token"]?.ToString() ?? "token";
-
-                    Log($"New token {settings.Token} generated");
-                    settings.Token = newToken;
-                    websocketUrl += $"&token={settings.Token}";
-                    tokenSource.Cancel();
+                    Log("OnMessage data: " + e.Data.Trim());
+                    string method = response?["event"]?.ToString() ?? String.Empty;
+                    if (method.Equals("ms.channel.connect"))
+                    {
+                        string newToken = response?["data"]?["token"]?.ToString() ?? String.Empty;
+                        settings.Token = newToken;
+                        Log($"New token {settings.Token} generated");
+                        websocketUrl += $"&token={settings.Token}";
+                        tokenSource.Cancel();
+                    }
                 };
 
                 websocket.OnError += (sender, e) =>
@@ -98,9 +87,15 @@ namespace SamsungRemoteLib
                 };
 
                 websocket.Connect();
-                Log("Waiting 30 seconds for user to accept connection prompt on TV...");
-                await Task.Delay(TimeSpan.FromSeconds(30), tokenSource.Token); // allow user 30 seconds to accept connection prompt on TV
-                if (settings.Token == null && timeoutException) throw new ArgumentNullException("Token is ***null*** check TV for accept connection prompt");
+                Log("Accept dialog for new connection on TV...");
+                // Allow time for OnMessage to fire before socket closes on exit of using statement
+                try
+                {
+                    await Task.Delay(30000, tokenSource.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                }
             }
         }
 
@@ -146,7 +141,6 @@ namespace SamsungRemoteLib
                 }
 
                 string content = await response.Content.ReadAsStringAsync();
-                Log($"isActive response: {content.Trim()}");
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
                     return true;
@@ -155,7 +149,7 @@ namespace SamsungRemoteLib
             }
         }
 
-        public void TurnOn(int repeat = 1)
+        public void TurnOn(int repeat = 10)
         {
             if (!wolEndpointSet)
             {
@@ -237,6 +231,11 @@ namespace SamsungRemoteLib
             return packet;
         }
 
+        private void Websocket_OnError(object? sender, WebSocketSharp.ErrorEventArgs e)
+        {
+            Debug.WriteLine($"WebSocket error: {e.Message}");
+        }
+
         public void Log(string msg)
         {
             if (settings.Debug) Debug.WriteLine(msg);
@@ -255,7 +254,6 @@ namespace SamsungRemoteLib
             {
                 if (disposing)
                 {
-                    Log("Closing websocket connection");
                     websocket?.Close();
                 }
             }
@@ -280,8 +278,20 @@ namespace SamsungRemoteLib
             MacAddr = macAddr.Replace("-", "");
             Port = port;
             Subnet = subnet;
+            if (token != null && token.Equals(String.Empty)) token = null;
             Token = token;
             Debug = debug;
+        }
+
+        public override string ToString()
+        {
+            return $@"AppName: {AppName}
+IpAddr: {IpAddr}
+MacAddr: {MacAddr}
+Port: {Port}
+Subnet: {Subnet}
+Token: {Token}
+Debug: {Debug}";
         }
     }
 
@@ -318,7 +328,47 @@ namespace SamsungRemoteLib
 
     public static class Keys
     {
-        public static string KEY_VOLDOWN { get => "KEY_VOLDOWN"; }
-        public static string KEY_HOME { get => "KEY_HOME"; }
+        public static string NUM0 { get => "KEY_0"; }
+        public static string NUM1 { get => "KEY_1"; }
+        public static string NUM2 { get => "KEY_2"; }
+        public static string NUM3 { get => "KEY_3"; }
+        public static string NUM4 { get => "KEY_4"; }
+        public static string NUM5 { get => "KEY_5"; }
+        public static string NUM6 { get => "KEY_6"; }
+        public static string NUM7 { get => "KEY_7"; }
+        public static string NUM8 { get => "KEY_8"; }
+        public static string NUM9 { get => "KEY_9"; }
+        public static string POWER { get => "KEY_POWER"; }
+        public static string SOURCE { get => "KEY_SOURCE"; }
+        public static string PLUS100 { get => "KEY_PLUS100"; } // DASH/MINUS "-" button
+        public static string PRECH { get => "KEY_PRECH"; }
+        public static string VOLUP { get => "KEY_VOLUP"; }
+        public static string VOLDOWN { get => "KEY_VOLDOWN"; }
+        public static string MUTE { get => "KEY_MUTE"; }
+        public static string CH_LIST { get => "KEY_CH_LIST"; }
+        public static string CHDOWN { get => "KEY_CHDOWN"; }
+        public static string CHUP { get => "KEY_CHUP"; }
+        public static string HOME { get => "KEY_HOME"; }
+        public static string GUIDE { get => "KEY_GUIDE"; }
+        public static string LEFT { get => "KEY_LEFT"; }
+        public static string UP { get => "KEY_UP"; }
+        public static string RIGHT { get => "KEY_RIGHT"; }
+        public static string DOWN { get => "KEY_DOWN"; }
+        public static string ENTER { get => "KEY_ENTER"; }
+        public static string RETURN { get => "KEY_RETURN"; }
+        public static string EXIT { get => "KEY_EXIT"; }
+        public static string MENU { get => "KEY_MENU"; } // SETTINGS button
+        public static string INFO { get => "KEY_INFO"; }
+        public static string SUB_TITLE { get => "KEY_SUB_TITLE"; } // CC/VD button
+        public static string STOP { get => "KEY_STOP"; }
+        public static string REWIND { get => "KEY_REWIND"; }
+        public static string FF { get => "KEY_FF"; }
+        public static string PLAY { get => "KEY_PLAY"; }
+        public static string PAUSE { get => "KEY_PAUSE"; }
+        public static string RED { get => "KEY_RED"; }
+        public static string GREEN { get => "KEY_GREEN"; }
+        public static string YELLOW { get => "KEY_YELLOW"; }
+        public static string CYAN { get => "KEY_CYAN"; }
+
     }
 }
