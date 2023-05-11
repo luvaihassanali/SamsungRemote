@@ -3,16 +3,17 @@ using Newtonsoft.Json.Linq;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
-// WebSocketSharp async methods use BeginInvoke which is not supported for .NET Core https://devblogs.microsoft.com/dotnet/migrating-delegate-begininvoke-calls-for-net-core/
 using WebSocketSharp;
 
 namespace SamsungRemoteLib
 {
+    // WebSocketSharp async methods use BeginInvoke which is not supported for .NET Core
+    // https://github.com/sta/websocket-sharp/pull/712
+    // To use asynchronously execute *methodName*Async() which is simply synchronous method wrapped in await Task.Run
+
     public class SamsungRemote : IDisposable
     {
-        private bool disposed;
         private string websocketUrl;
-        private bool tokenInitialized;
         private bool wolEndpointSet;
         private byte[] macAddrBytes;
         private IPEndPoint? wolEndpoint;
@@ -21,20 +22,21 @@ namespace SamsungRemoteLib
 
         public SamsungRemote(Settings s)
         {
-            disposed = false;
             settings = s;
-            tokenInitialized = false;
             macAddrBytes = new byte[6];
             string urlPrefix = settings.Port == 8001 ? "ws" : "wss";
             websocketUrl = $"{urlPrefix}://{settings.IpAddr}:{settings.Port}/api/v2/channels/samsung.remote.control?name={settings.AppName}";
+
+            //websocket.OnOpen
+            //websocket.OnClose
+            //websocket.OnMessage
+            //websocket.OnError += Websocket_OnError;
         }
 
         public void Connect()
         {
-            if (File.Exists("SamsungRemote.token"))
+            if (settings.Token != null)
             {
-                settings.Token = File.ReadAllText("SamsungRemote.token");
-                tokenInitialized = true;
                 websocketUrl += $"&token={settings.Token}";
             }
             else
@@ -46,81 +48,71 @@ namespace SamsungRemoteLib
             websocket.Connect();
         }
 
-        public void ConnectWithToken(string token)
+        public void Press(string key)
         {
-            settings.Token = token;
-            tokenInitialized = true;
-            websocketUrl += $"&token={settings.Token}";
-            websocket = new WebSocket(websocketUrl);
-            websocket.Connect();
-        }
+            if (websocket == null || !websocket.IsAlive) throw new ArgumentNullException("WebSocket is ***null*** call Connect() or ConnectAsync() before key press");
+            if (settings.Token == null) throw new ArgumentNullException("Token is ***null*** call GenerateNewToken() or GenerateNewTokenAsync() before key press");
 
-        public void Send(string key)
-        {
-            if (!tokenInitialized) throw new TokenInvalidException();
             Parameters parameters = new Parameters(key);
             Command cmd = new Command(parameters);
             string data = JsonConvert.SerializeObject(cmd).Replace("parameters", "params");
-            Debug.WriteLine("Sending key data: " + data);
+            Log("Sending key data: " + data);
             websocket?.Send(data);
         }
 
-        public void GenerateNewToken()
+        public void GenerateNewToken(bool timeoutException = true)
         {
-            Task task = Task.Run(() => GenerateNewTokenAsync());
+            Task task = Task.Run(() => GenerateNewTokenAsync(timeoutException));
             task.Wait();
         }
 
-        public async Task GenerateNewTokenAsync()
+        public async Task GenerateNewTokenAsync(bool timeoutException = true)
         {
             CancellationTokenSource tokenSource = new CancellationTokenSource();
             using (websocket = new WebSocket(websocketUrl))
             {
                 websocket.OnOpen += (sender, e) =>
                 {
-                    Parameters parameters = new Parameters(Keys.KEY_VOLDOWN);
+                    Parameters parameters = new Parameters(Keys.KEY_HOME); // token only received with home
                     Command cmd = new Command(parameters);
                     string data = JsonConvert.SerializeObject(cmd).Replace("parameters", "params");
-                    Debug.WriteLine("Generate new token request: " + data);
-                    Send(data);
+                    Log("Generate new token request: " + data);
+                    Press(data);
                 };
 
                 websocket.OnMessage += (sender, e) =>
                 {
-                    Debug.WriteLine("Generate new token data: " + e.Data);
+                    Log("Generate new token data: " + e.Data);
                     JObject response = JObject.Parse(e.Data);
-                    string tempToken = response?["data"]?["token"]?.ToString() ?? "token";
+                    string newToken = response?["data"]?["token"]?.ToString() ?? "token";
 
-                    File.WriteAllText("SamsungRemote.token", settings.Token);
-                    Debug.WriteLine($"New token {settings.Token} saved to file");
-
-                    settings.Token = tempToken;
+                    Log($"New token {settings.Token} generated");
+                    settings.Token = newToken;
                     websocketUrl += $"&token={settings.Token}";
-                    tokenInitialized = true;
                     tokenSource.Cancel();
                 };
 
                 websocket.OnError += (sender, e) =>
                 {
-                    Debug.WriteLine("Generate new token error: " + e.Message);
+                    Log("Generate new token error: " + e.Message);
                 };
 
                 websocket.Connect();
-                Debug.WriteLine("Waiting 30 seconds for user to accept connection prompt on TV");
+                Log("Waiting 30 seconds for user to accept connection prompt on TV...");
                 await Task.Delay(TimeSpan.FromSeconds(30), tokenSource.Token); // allow user 30 seconds to accept connection prompt on TV
-                if (settings.Token.Equals("token")) throw new TokenInvalidException();
+                if (settings.Token == null && timeoutException) throw new ArgumentNullException("Token is ***null*** check TV for accept connection prompt");
             }
         }
 
-        public bool IsActive(int delay = 0)
+        public bool IsTvOn(int delay = 0)
         {
             if (delay != 0) Task.Delay(delay).Wait();
-            Task<bool> task = Task.Run(() => IsActiveAsync());
+            Task<bool> task = Task.Run(() => IsTvOnAsync());
             task.Wait();
             return task.Result;
         }
 
-        public async Task<bool> IsActiveAsync(int delay = 0)
+        public async Task<bool> IsTvOnAsync(int delay = 0)
         {
             if (delay != 0) await Task.Delay(delay);
 
@@ -154,7 +146,7 @@ namespace SamsungRemoteLib
                 }
 
                 string content = await response.Content.ReadAsStringAsync();
-                Debug.WriteLine($"isActive response: {content.Trim()}");
+                Log($"isActive response: {content.Trim()}");
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
                     return true;
@@ -185,7 +177,7 @@ namespace SamsungRemoteLib
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine($"SendMagicPacket error: {ex.Message}");
+                    Log($"SendMagicPacket error: {ex.Message}");
                 }
             }
         }
@@ -206,8 +198,8 @@ namespace SamsungRemoteLib
                 throw new ArgumentNullException($"Could not resolve address: {settings.IpAddr}");
             }
 
-            IPAddress subnetMask = IPAddress.Parse(settings.SubnetMask);
-            byte[] subnetAddrBytes = subnetMask.GetAddressBytes();
+            IPAddress subnet = IPAddress.Parse(settings.Subnet);
+            byte[] subnetAddrBytes = subnet.GetAddressBytes();
             byte[] ipAddrBytes = host[0].GetAddressBytes();
             for (int i = 0; i < ipAddrBytes.Length; i++)
             {
@@ -245,19 +237,25 @@ namespace SamsungRemoteLib
             return packet;
         }
 
+        public void Log(string msg)
+        {
+            if (settings.Debug) Debug.WriteLine(msg);
+        }
+
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
+        private bool _disposed = false; // To detect redundant calls
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposed)
+            if (!_disposed)
             {
                 if (disposing)
                 {
-                    Debug.WriteLine("Closing websocket connection");
+                    Log("Closing websocket connection");
                     websocket?.Close();
                 }
             }
@@ -270,18 +268,20 @@ namespace SamsungRemoteLib
         public string IpAddr { get; set; }
         public string MacAddr { get; set; }
         public int Port { get; set; }
-        public string SubnetMask { get; set; }
-        public string Token { get; set; }
+        public string Subnet { get; set; }
+        public string? Token { get; set; }
+        public bool Debug { get; set; }
 
-        public Settings(string appName, string ipAddr, string macAddr, int port = 8002, string token = "token", string subnetMask = "255.255.255.0")
+        public Settings(string appName, string ipAddr, string subnet, string macAddr, int port, string? token, bool debug)
         {
             byte[] appNameBytes = System.Text.Encoding.UTF8.GetBytes(appName);
             AppName = Convert.ToBase64String(appNameBytes);
             IpAddr = ipAddr;
             MacAddr = macAddr.Replace("-", "");
             Port = port;
-            SubnetMask = subnetMask;
-            Token = token.Equals("token") ? String.Empty : token;
+            Subnet = subnet;
+            Token = token;
+            Debug = debug;
         }
     }
 
@@ -316,25 +316,9 @@ namespace SamsungRemoteLib
         }
     }
 
-    public class TokenInvalidException : Exception
-    {
-        public TokenInvalidException()
-        {
-        }
-
-        public TokenInvalidException(string message)
-            : base(message)
-        {
-        }
-
-        public TokenInvalidException(string message, Exception inner)
-            : base(message, inner)
-        {
-        }
-    }
-
     public static class Keys
     {
         public static string KEY_VOLDOWN { get => "KEY_VOLDOWN"; }
+        public static string KEY_HOME { get => "KEY_HOME"; }
     }
 }

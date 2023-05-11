@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SamsungRemote", "SamsungRem
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "websocket-sharp", "websocket-sharp-net6.0\websocket-sharp\websocket-sharp.csproj", "{55A26149-3FF6-4800-A0D6-69C24E816794}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SamsungRemoteDemo", "SamsungRemoteDemo\SamsungRemoteDemo.csproj", "{05D233E6-5B92-4356-B3BA-33FC83B52232}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SamsungRemoteDemo", "SamsungRemoteDemo\SamsungRemoteDemo.csproj", "{A97403FC-003A-4C81-A419-F9646245A940}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,10 +23,10 @@ Global
 		{55A26149-3FF6-4800-A0D6-69C24E816794}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{55A26149-3FF6-4800-A0D6-69C24E816794}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{55A26149-3FF6-4800-A0D6-69C24E816794}.Release|Any CPU.Build.0 = Release|Any CPU
-		{05D233E6-5B92-4356-B3BA-33FC83B52232}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{05D233E6-5B92-4356-B3BA-33FC83B52232}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{05D233E6-5B92-4356-B3BA-33FC83B52232}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{05D233E6-5B92-4356-B3BA-33FC83B52232}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A97403FC-003A-4C81-A419-F9646245A940}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A97403FC-003A-4C81-A419-F9646245A940}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A97403FC-003A-4C81-A419-F9646245A940}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A97403FC-003A-4C81-A419-F9646245A940}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
