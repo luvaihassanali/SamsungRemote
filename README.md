@@ -3,12 +3,12 @@
   
 SamsungRemote is a .NET 6.0 library used to communicate with Samsung TV over Wi-Fi. WebSocket client is used to maintain connection to TV which is implemented using fork of [websocket-sharp](https://github.com/sta/websocket-sharp).
 ## Features
-- Compatible with authentication protocol defined in this article: [Samsung TV network remote control protocol by sc0ty](http://sc0ty.pl/2012/02/samsung-tv-network-remote-control-protocol/)
+- Compatible with authentication protocol defined here: [Samsung TV network remote control protocol by sc0ty](http://sc0ty.pl/2012/02/samsung-tv-network-remote-control-protocol/)
 - Turn on TV by sending Wake-On-Lan Magic Packet using MAC address
 - Tested with Samsung 2019 UN50RU7100FXZC (2019)
 
 # Usage
-See [SamsungRemoteDemo](https://github.com/luvaihassanali/SamsungRemote/tree/master/SamsungRemoteDemo) for more detailed example
+See [SamsungRemoteDemo](https://github.com/luvaihassanali/SamsungRemote/blob/master/SamsungRemoteDemo/Program.cs) for more detailed example
 ```
 Settings settings = new Settings(
     appName: "SamsungRemoteDemo", // converted to base64 string as ID for TV
@@ -28,11 +28,12 @@ using (SamsungRemote remote = new SamsungRemote(settings))
         // Token being null will show dialog on TV for user to accept new connection
         remote.Connect();
         remote.Press(Keys.VOLDOWN);
-        Task.Delay(200).Wait() // A delay is required between sending two keys for TV to receive them properly
+        Task.Delay(200).Wait() // Delay is required between sending two keys
         remote.Press(Keys.VOLDOWN);
     }
 }
-// GenerateNewToken() will update settings.Token with new token value which can be saved for subsequent connections
+// GenerateNewToken() will update settings.Token with new token value 
+// Saved token is used on next initialization so TV will not show new connection dialog 
 ```
 
 # How to get MAC address
