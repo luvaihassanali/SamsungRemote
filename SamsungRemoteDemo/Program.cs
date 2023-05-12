@@ -21,11 +21,11 @@ internal class Program
 
         Console.WriteLine("Initializing SamsungRemote...");
         Settings settings = new Settings(
-            appName: "SamsungRemoteDemo",
-            ipAddr: "192.168.1.100", // IP of TV
-            subnet: "255.255.255.0", // Required if MAC address supplied
-            macAddr: "00-A1-B2-C3-D4-E5", // MAC address of TV (required for TurnOn() function)
-            port: 8002,
+            appName: appName, // converted to base64 string as ID for TV
+            ipAddr: ipAddr, // IP of TV
+            subnet: subnet, // Required if MAC address supplied
+            macAddr: macAddr, // MAC address of TV (required for TurnOn() function)
+            port: port,
             token: token, // If token is empty string it is treated same as null
             debug: true); // Boolean to control Debug.WriteLine statements in SamsungRemote class
         Console.WriteLine($"Settings: {settings}\n");
@@ -61,6 +61,7 @@ internal class Program
 
             Console.WriteLine($"Pressing volume up after {delay} seconds");
             Task.Delay(delay).Wait();
+            // If TV
             remote.Press(Keys.VOLUP);
 
             Console.WriteLine("Enter key code e.g 'KEY_VOLDOWN' or enter multiple key codes separated by ; character e.g. 'KEY_2;KEY_PLUS100;KEY_1'\nEnter 'exit' to end program");
