@@ -45,7 +45,7 @@ To be able to turn on TV, the MAC address (and subnet) is required to be set. Th
 # Notes
 :warning: TurnOn() and IsTvOn() functions will fail if called within 20-30 seconds of turning TV off :warning:
 - During testing it was observed if TurnOn() or IsTvOn() were called within 20-30 seconds of TV being turned off, then TurnOn() would do nothing or produce delayed power on, and IsTvOn() would return true
-- A delay is required in between sending keys repeadeatly (200ms is good, not tested with a lower interval);
+- A delay is required in between sending keys repeadeatly (200ms is good, not tested with a lower interval)
 - MAC address and subnet can be omitted but exception will be thrown if TurnOn() function is called
 - Currently WebSocketSharp async methods use BeginInvoke which is not supported for .NET Core https://github.com/sta/websocket-sharp/pull/712 (wrap methods in await Task.Run(() => { Function(); }) as a workaround)
 - If acceptance prompt is ignored with a supplied token, commands will work but prompt will display again on next connect, until accepted
