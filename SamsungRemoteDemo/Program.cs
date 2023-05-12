@@ -22,9 +22,9 @@ internal class Program
         Console.WriteLine("Initializing SamsungRemote...");
         Settings settings = new Settings(
             appName: "SamsungRemoteDemo",
-            ipAddr: "***REMOVED***",
+            ipAddr: "192.168.1.100", // IP of TV
             subnet: "255.255.255.0", // Required if MAC address supplied
-            macAddr: "***REMOVED***", // Not required but if not supplied TurnOn() function cannot be used
+            macAddr: "00-A1-B2-C3-D4-E5", // MAC address of TV (required for TurnOn() function)
             port: 8002,
             token: token, // If token is empty string it is treated same as null
             debug: true); // Boolean to control Debug.WriteLine statements in SamsungRemote class

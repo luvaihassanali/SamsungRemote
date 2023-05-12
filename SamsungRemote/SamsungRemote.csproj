@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <AssemblyOriginatorKeyFile>SamsungRemote.snk</AssemblyOriginatorKeyFile>
     <RootNamespace>$(MSBuildProjectName.Replace(" ", "_"))Lib</RootNamespace>
-    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Title>$(AssemblyName)</Title>
     <Authors>Luvai Hassanali</Authors>
     <Company>Luvai Hassanali</Company>
