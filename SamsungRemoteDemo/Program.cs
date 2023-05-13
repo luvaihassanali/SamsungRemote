@@ -73,7 +73,7 @@ internal class Program
                 {
                     break;
                 }
-                string[] inputKeys = inputKey.Contains(';') ? inputKey.Split(";") : new string[] { inputKey };
+                string[] inputKeys = inputKey.Contains(';') ? inputKey.Split(';') : new string[] { inputKey };
                 for (int i = 0; i < inputKeys.Length; i++)
                 {
                     string key = inputKeys[i].Trim();
@@ -86,7 +86,7 @@ internal class Program
             }
 
             // Turn off TV
-            remote.Press(Keys.POWER);
+            //remote.Press(Keys.POWER);
 
             // After first token generation, new token value is saved in settings.Token
             // When SamsungRemote constructor is called on next launch with token that is already paired, TV will not prompt user to accept connection again
@@ -102,7 +102,7 @@ internal class Program
         Console.WriteLine("Key list:");
         Type t = typeof(Keys);
         MemberInfo[] memberInfo = t.GetMembers();
-        string[] exceptionList = "GetType ToString Equals GetHashCode 0 1 2 3 4 5 6 7 8 9 POWER POWEROFF SOURCE PLUS100 PRECH VOLUP VOLDOWN MUTE CH_LIST CHDOWN CHUP HOME W_LINK GUIDE LEFT UP RIGHT DOWN ENTER RETURN EXIT SETTINGS INFO SUB_TITLE STOP REWIND FF PLAY PAUSE".Split(" ");
+        string[] exceptionList = "GetType ToString Equals GetHashCode 0 1 2 3 4 5 6 7 8 9 POWER POWEROFF SOURCE PLUS100 PRECH VOLUP VOLDOWN MUTE CH_LIST CHDOWN CHUP HOME W_LINK GUIDE LEFT UP RIGHT DOWN ENTER RETURN EXIT SETTINGS INFO SUB_TITLE STOP REWIND FF PLAY PAUSE".Split(' ');
         foreach (MemberInfo member in memberInfo)
         {
             string name = member.Name.Replace("get_", "KEY_");

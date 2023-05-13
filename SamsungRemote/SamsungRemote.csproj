@@ -1,16 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFrameworks>net48;net6.0</TargetFrameworks>
+	<PackageVersion>1.0.2</PackageVersion>
+	<LangVersion>10.0</LangVersion>
+	<Nullable>enable</Nullable>
+	<NullableContextOptions>enable</NullableContextOptions>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
     <AssemblyOriginatorKeyFile>SamsungRemote.snk</AssemblyOriginatorKeyFile>
     <RootNamespace>$(MSBuildProjectName.Replace(" ", "_"))Lib</RootNamespace>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Title>$(AssemblyName)</Title>
     <Authors>Luvai Hassanali</Authors>
     <Company>Luvai Hassanali</Company>
-    <Description>.NET 6.0 library used to communicate with Samsung TV over Wi-Fi</Description>
+    <Description>.NET library used to communicate with Samsung TV over Wi-Fi</Description>
     <RepositoryUrl>https://github.com/luvaihassanali/SamsungRemote</RepositoryUrl>
     <PackageTags>c-sharp;http;control;remote-control;csharp;tcp;https;websocket;websockets;remote;wifi;netcore;ip;samsung;samsung-tv;wi-fi;tcp-ip;net-core;samsung-remote</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -29,10 +32,11 @@
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="WebSocketSharp" Version="1.0.3-rc11" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\websocket-sharp-net6.0\websocket-sharp\websocket-sharp.csproj" />
+    <Reference Include="System.Net.Http" />
   </ItemGroup>
 
 </Project>

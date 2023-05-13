@@ -1,7 +1,7 @@
 # SamsungRemote
 # Overview
   
-SamsungRemote is a .NET 6.0 library used to communicate with Samsung TV over Wi-Fi. WebSocket client is used to maintain connection to TV which is implemented using fork of [websocket-sharp](https://github.com/sta/websocket-sharp).
+SamsungRemote is a .NET library used to communicate with Samsung TV over Wi-Fi. WebSocket client is used to maintain connection to TV which is implemented using [websocket-sharp](https://github.com/sta/websocket-sharp).
 ## Features
 - Compatible with authentication protocol defined here: [Samsung TV network remote control protocol by sc0ty](http://sc0ty.pl/2012/02/samsung-tv-network-remote-control-protocol/)
 - Turn on TV by sending Wake-On-Lan Magic Packet using MAC address

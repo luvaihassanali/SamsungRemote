@@ -12,8 +12,8 @@ namespace SamsungRemoteLib
         private string websocketUrl;
         private bool wolEndpointSet;
         private byte[] macAddrBytes;
-        private IPEndPoint? wolEndpoint;
-        private WebSocket? websocket;
+        private IPEndPoint wolEndpoint;
+        private WebSocket websocket;
         private Settings settings;
 
         public SamsungRemote(Settings s)
@@ -42,12 +42,12 @@ namespace SamsungRemoteLib
 
         public void Press(string key)
         {
-            if (settings.Token == null) throw new ArgumentNullException("Token is ***null*** execute Connect() before pressing keys");
+            if (settings.Token == null) throw new ArgumentNullException("Token is ***null***");
             Parameters parameters = new Parameters(key);
             Command cmd = new Command(parameters);
             string data = JsonConvert.SerializeObject(cmd).Replace("parameters", "params");
             Log("Sending key: " + key);
-            websocket?.Send(data);
+            websocket.Send(data);
         }
 
         public void GenerateNewToken()
@@ -70,10 +70,10 @@ namespace SamsungRemoteLib
                 {
                     JObject response = JObject.Parse(e.Data);
                     Log("OnMessage data: " + e.Data.Trim());
-                    string method = response?["event"]?.ToString() ?? String.Empty;
+                    string method = response?["event"].ToString() ?? String.Empty;
                     if (method.Equals("ms.channel.connect"))
                     {
-                        string newToken = response?["data"]?["token"]?.ToString() ?? String.Empty;
+                        string newToken = response["data"]["token"].ToString() ?? String.Empty;
                         settings.Token = newToken;
                         Log($"New token {settings.Token} generated");
                         websocketUrl += $"&token={settings.Token}";
@@ -231,7 +231,7 @@ namespace SamsungRemoteLib
             return packet;
         }
 
-        private void Websocket_OnError(object? sender, WebSocketSharp.ErrorEventArgs e)
+        private void Websocket_OnError(object sender, WebSocketSharp.ErrorEventArgs e)
         {
             Debug.WriteLine($"WebSocket error: {e.Message}");
         }
@@ -254,7 +254,7 @@ namespace SamsungRemoteLib
             {
                 if (disposing)
                 {
-                    websocket?.Close();
+                    websocket.Close();
                 }
             }
         }
@@ -267,10 +267,10 @@ namespace SamsungRemoteLib
         public string MacAddr { get; set; }
         public int Port { get; set; }
         public string Subnet { get; set; }
-        public string? Token { get; set; }
+        public string Token { get; set; }
         public bool Debug { get; set; }
 
-        public Settings(string appName, string ipAddr, string subnet, string macAddr, int port, string? token, bool debug)
+        public Settings(string appName, string ipAddr, string subnet, string macAddr, int port, string token, bool debug)
         {
             byte[] appNameBytes = System.Text.Encoding.UTF8.GetBytes(appName);
             AppName = Convert.ToBase64String(appNameBytes);
